@@ -140,7 +140,13 @@ groupedMembersList : ShuffleListType -> Int -> List String -> List (List String)
 groupedMembersList shuffleListType num members =
     case shuffleListType of
         People ->
-            groupsOf num members
+            let
+                groupedMembers =
+                    groupsOf num members
+            in
+            groupedMembers
+                ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
+                |> List.filter (\l -> not <| List.isEmpty l)
 
         Team ->
             []
