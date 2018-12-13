@@ -49,18 +49,18 @@ suite =
                 ]
             , test "最大値が3のとき、3を選んだとき ChangeNum '3' の Msgが発行される" <|
                 \_ ->
-                    let
-                        simulatedEventObject : Value
-                        simulatedEventObject =
-                            Encode.object
-                                [ ( "target"
-                                  , Encode.object [ ( "value", Encode.string "3" ) ]
-                                  )
-                                ]
-                    in
                     selectNumView 3
                         |> Query.fromHtml
-                        |> Event.simulate (Event.custom "change" simulatedEventObject)
+                        |> Event.simulate (Event.custom "change" <| simulatedStringEventObject "3")
                         |> Event.expect (ChangeNum "3")
             ]
+        ]
+
+
+simulatedStringEventObject : String -> Value
+simulatedStringEventObject str =
+    Encode.object
+        [ ( "target"
+          , Encode.object [ ( "value", Encode.string str ) ]
+          )
         ]
