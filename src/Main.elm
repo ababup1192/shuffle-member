@@ -24,6 +24,7 @@ type alias Model =
     , selectedNum : Int
     , shuffleListType : ShuffleListType
     , memberList : List String
+    , name : String
     }
 
 
@@ -33,6 +34,7 @@ init _ =
       , selectedNum = 2
       , shuffleListType = People
       , memberList = []
+      , name = ""
       }
     , Cmd.none
     )
@@ -52,13 +54,91 @@ type Msg
     | ChangeShuffleType String
     | ToggleShuffle
     | UpdateNewMember String
-    | AddMember
+    | AddMember Int
     | ClearMember
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
+update msg ({ memberList, name } as model) =
+    case msg of
+        ChangeNum numText ->
+            ( { model
+                | selectedNum =
+                    Maybe.withDefault 2 <| String.toInt numText
+              }
+            , Cmd.none
+            )
+
+        ChangeShuffleType typeText ->
+            if typeText == "people" then
+                ( { model
+                    | shuffleListType = People
+                    , selectedNum = 2
+                    , maxSelectNum = maxPeopleNum memberList
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( { model
+                    | shuffleListType = Team
+                    , selectedNum = 2
+                  }
+                , Cmd.none
+                )
+
+        ToggleShuffle ->
+            ( model, Cmd.none )
+
+        UpdateNewMember n ->
+            ( { model | name = n }, Cmd.none )
+
+        AddMember keyCode ->
+            let
+                trimedName =
+                    String.trim name
+
+                newMemberList =
+                    trimedName :: memberList
+            in
+            if keyCode == enterKeyCode && not (String.isEmpty trimedName) then
+                ( { model
+                    | memberList = newMemberList
+                    , name = ""
+                    , maxSelectNum = maxPeopleNum newMemberList
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( model, Cmd.none )
+
+        ClearMember ->
+            ( { model
+                | memberList = []
+                , maxSelectNum = 2
+                , selectedNum = 2
+              }
+            , Cmd.none
+            )
+
+
+maxPeopleNum : List String -> Int
+maxPeopleNum members =
+    let
+        peopleNum =
+            List.length members // 2
+    in
+    if peopleNum < 2 then
+        2
+
+    else
+        peopleNum
+
+
+enterKeyCode : Int
+enterKeyCode =
+    13
 
 
 
@@ -66,7 +146,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { maxSelectNum, shuffleListType, selectedNum, memberList } =
+view { maxSelectNum, shuffleListType, selectedNum, memberList, name } =
     section []
         [ article []
             [ selectNumView maxSelectNum selectedNum
@@ -74,21 +154,20 @@ view { maxSelectNum, shuffleListType, selectedNum, memberList } =
             , button [ onClick ToggleShuffle ] [ text "シャッフル♪" ]
             ]
         , article []
-            [ input [ placeholder "新規メンバー", onInput UpdateNewMember ] []
-            , button [ onClick AddMember ] [ text "追加" ]
+            [ input
+                [ placeholder "新規メンバー"
+                , value name
+                , onInput UpdateNewMember
+                , onKeyDown AddMember
+                ]
+                []
             , button [ onClick ClearMember ] [ text "クリア" ]
             ]
         , article []
-            [ ul [] <|
-                List.repeat 10 <|
-                    li []
-                        [ ul [] <|
-                            List.repeat 10 <|
-                                li []
-                                    [ text "あああ"
-                                    , button [ class "destroy" ] []
-                                    ]
-                        ]
+            [ memberList
+                |> List.reverse
+                |> groupedMembersList shuffleListType selectedNum
+                |> membersListView
             ]
         ]
 
@@ -156,14 +235,23 @@ groupedMembersList shuffleListType num members =
                 groupedMembers =
                     groupsOf dividedNum members
             in
-            groupedMembers
-                ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
-                |> List.filter (\l -> not <| List.isEmpty l)
+            List.reverse <|
+                case List.reverse groupedMembers of
+                    x :: xs ->
+                        (x ++ List.drop (List.length <| List.concat groupedMembers) members) :: xs
+
+                    [] ->
+                        []
 
 
 onChange : (String -> Msg) -> Attribute Msg
 onChange handler =
     Event.on "change" (Decode.map handler Event.targetValue)
+
+
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    Event.on "keydown" (Decode.map tagger Event.keyCode)
 
 
 subscriptions : Model -> Sub Msg

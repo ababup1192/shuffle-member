@@ -103,8 +103,13 @@ section {
         padding: 12px;
         border: 1px solid gray;
 
-        li{
+        li {
           position: relative;
+          padding: 10px 0;
+
+          &:not(:last-child) {
+            border-bottom: 1px dashed gray;
+          }
 
           &:hover{
             .destroy {
@@ -115,14 +120,14 @@ section {
           .destroy {
             display: none;
             position: absolute;
-            font-size: 30px;
+            font-size: 22px;
             cursor: pointer;
             color: #cc9a9a;
             background: #37495D;
-            top: -6px;
+            top: 5px;
             right: 5px;
-            width: 30px;
-            height: 30px;
+            width: 22px;
+            height: 22px;
             transition: color 0.2s ease-out;
 
             &:hover {

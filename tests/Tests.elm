@@ -127,6 +127,28 @@ suite =
                                 |> groupedMembersList Team 2
                     in
                     Expect.equal expected actual
+            , test "7人のメンバーを2チームで分けた" <|
+                \_ ->
+                    let
+                        expected =
+                            [ [ "a", "b", "c" ], [ "d", "e", "f", "g" ] ]
+
+                        actual =
+                            [ "a", "b", "c", "d", "e", "f", "g" ]
+                                |> groupedMembersList Team 2
+                    in
+                    Expect.equal expected actual
+            , test "11人のメンバーを3チームで分けた" <|
+                \_ ->
+                    let
+                        expected =
+                            [ [ "a", "b", "c" ], [ "d", "e", "f" ], [ "g", "h", "i", "j", "k" ] ]
+
+                        actual =
+                            [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k" ]
+                                |> groupedMembersList Team 3
+                    in
+                    Expect.equal expected actual
             ]
         ]
 
