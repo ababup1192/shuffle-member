@@ -149,7 +149,16 @@ groupedMembersList shuffleListType num members =
                 |> List.filter (\l -> not <| List.isEmpty l)
 
         Team ->
-            []
+            let
+                dividedNum =
+                    List.length members // num
+
+                groupedMembers =
+                    groupsOf dividedNum members
+            in
+            groupedMembers
+                ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
+                |> List.filter (\l -> not <| List.isEmpty l)
 
 
 onChange : (String -> Msg) -> Attribute Msg
