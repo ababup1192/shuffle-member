@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), selectNumView)
+module Main exposing (Model, Msg(..), selectNumView, selectShuffleListTypeView)
 
 import Browser
 import Html exposing (..)
@@ -26,6 +26,7 @@ init _ =
 
 type Msg
     = ChangeNum String
+    | ChangeShuffleType String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -42,10 +43,7 @@ view { maxSelectNum } =
     section []
         [ article []
             [ selectNumView maxSelectNum
-            , select []
-                [ option [ value "people" ] [ text "人" ]
-                , option [ value "team" ] [ text "チーム" ]
-                ]
+            , selectShuffleListTypeView
             , button [] [ text "シャッフル♪" ]
             ]
         , article []
@@ -81,6 +79,14 @@ selectNumView maxSelectNum =
                     option [ value nText ] [ text nText ]
                 )
         )
+
+
+selectShuffleListTypeView : Html Msg
+selectShuffleListTypeView =
+    select []
+        [ option [ value "people" ] [ text "人" ]
+        , option [ value "team" ] [ text "チーム" ]
+        ]
 
 
 onChange : (String -> Msg) -> Attribute Msg
