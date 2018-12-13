@@ -93,6 +93,19 @@ suite =
                 , membersListViewTest 2 1 "f"
                 ]
             ]
+        , describe "groupedMembersList"
+            [ test "6人のメンバーを2人ずつで分けた" <|
+                \_ ->
+                    let
+                        expected =
+                            [ [ "a", "b" ], [ "c", "d" ], [ "e", "f" ] ]
+
+                        actual =
+                            [ "a", "b", "c", "d", "e", "f" ]
+                                |> groupedMembersList People 2
+                    in
+                    Expect.equal expected actual
+            ]
         ]
 
 

@@ -2,6 +2,7 @@ module Main exposing
     ( Model
     , Msg(..)
     , ShuffleListType(..)
+    , groupedMembersList
     , membersListView
     , selectNumView
     , selectShuffleListTypeView
@@ -135,6 +136,11 @@ membersListView membersList =
             membersList
 
 
+groupedMembersList : ShuffleListType -> Int -> List String -> List (List String)
+groupedMembersList shuffleListType num members =
+    []
+
+
 onChange : (String -> Msg) -> Attribute Msg
 onChange handler =
     Event.on "change" (Decode.map handler Event.targetValue)
@@ -152,3 +158,34 @@ main =
         , subscriptions = subscriptions
         , view = view
         }
+
+
+
+--- List Util ---
+
+
+groupsOf : Int -> List a -> List (List a)
+groupsOf size xs =
+    groupsOfWithStep size size xs
+
+
+groupsOfWithStep : Int -> Int -> List a -> List (List a)
+groupsOfWithStep size step xs =
+    let
+        thisGroup =
+            List.take size xs
+
+        xs_ =
+            List.drop step xs
+
+        okayArgs =
+            size > 0 && step > 0
+
+        okayLength =
+            size == List.length thisGroup
+    in
+    if okayArgs && okayLength then
+        thisGroup :: groupsOfWithStep size step xs_
+
+    else
+        []
