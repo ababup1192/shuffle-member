@@ -13,6 +13,9 @@ import Html exposing (..)
 import Html.Attributes exposing (class, placeholder, selected, value)
 import Html.Events as Event exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
+import Random as Random exposing (Generator)
+import Random.List exposing (shuffle)
+import Time
 
 
 
@@ -25,6 +28,7 @@ type alias Model =
     , shuffleListType : ShuffleListType
     , memberList : List String
     , name : String
+    , shuffleMode : ShuffleMode
     }
 
 
@@ -35,6 +39,7 @@ init _ =
       , shuffleListType = People
       , memberList = []
       , name = ""
+      , shuffleMode = Stop
       }
     , Cmd.none
     )
@@ -43,6 +48,11 @@ init _ =
 type ShuffleListType
     = People
     | Team
+
+
+type ShuffleMode
+    = Shuffle
+    | Stop
 
 
 
@@ -56,10 +66,12 @@ type Msg
     | UpdateNewMember String
     | AddMember Int
     | ClearMember
+    | LetsShuffle Time.Posix
+    | ListShuffle (List String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ memberList, name } as model) =
+update msg ({ memberList, name, shuffleMode } as model) =
     case msg of
         ChangeNum numText ->
             ( { model
@@ -88,7 +100,16 @@ update msg ({ memberList, name } as model) =
                 )
 
         ToggleShuffle ->
-            ( model, Cmd.none )
+            let
+                nextMode =
+                    case shuffleMode of
+                        Shuffle ->
+                            Stop
+
+                        Stop ->
+                            Shuffle
+            in
+            ( { model | shuffleMode = nextMode }, Cmd.none )
 
         UpdateNewMember n ->
             ( { model | name = n }, Cmd.none )
@@ -122,6 +143,12 @@ update msg ({ memberList, name } as model) =
             , Cmd.none
             )
 
+        LetsShuffle _ ->
+            ( model, Cmd.batch [ Random.generate ListShuffle <| shuffle memberList ] )
+
+        ListShuffle shuffledMemberList ->
+            ( { model | memberList = shuffledMemberList }, Cmd.none )
+
 
 maxPeopleNum : List String -> Int
 maxPeopleNum members =
@@ -146,12 +173,17 @@ enterKeyCode =
 
 
 view : Model -> Html Msg
-view { maxSelectNum, shuffleListType, selectedNum, memberList, name } =
+view { maxSelectNum, shuffleListType, selectedNum, memberList, name, shuffleMode } =
     section []
         [ article []
             [ selectNumView maxSelectNum selectedNum
             , selectShuffleListTypeView shuffleListType
-            , button [ onClick ToggleShuffle ] [ text "シャッフル♪" ]
+            , case shuffleMode of
+                Stop ->
+                    button [ onClick ToggleShuffle, class "shuffle" ] [ text "シャッフル♪" ]
+
+                Shuffle ->
+                    button [ onClick ToggleShuffle, class "stop" ] [ text "ストップ！" ]
             ]
         , article []
             [ input
@@ -255,8 +287,13 @@ onKeyDown tagger =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+subscriptions { shuffleMode } =
+    case shuffleMode of
+        Shuffle ->
+            Time.every 50 LetsShuffle
+
+        Stop ->
+            Sub.none
 
 
 main =

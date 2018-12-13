@@ -39,7 +39,14 @@ section {
 
     button {
       margin-left: 4px;
-      background-color: #00d1b2;
+
+      &.shuffle {
+        background-color: #00d1b2;
+      }
+
+      &.stop {
+        background-color: #ff3860;
+      }
     }
 
     + button {
