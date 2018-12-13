@@ -118,15 +118,19 @@ selectShuffleListTypeView shuffleListType =
 membersListView : List (List String) -> Html Msg
 membersListView membersList =
     ul [ class "membersList" ] <|
-        List.repeat 10 <|
-            li []
-                [ ul []
-                    [ li []
-                        [ text "あああ"
-                        , button [ class "destroy" ] []
-                        ]
+        [ li []
+            [ ul []
+                [ li []
+                    [ text "a"
+                    , button [ class "destroy" ] []
+                    ]
+                , li []
+                    [ text "b"
+                    , button [ class "destroy" ] []
                     ]
                 ]
+            ]
+        ]
 
 
 onChange : (String -> Msg) -> Attribute Msg

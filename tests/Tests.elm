@@ -74,20 +74,18 @@ suite =
                     memsListView =
                         membersListView [ [ "a", "b" ], [ "c", "d" ], [ "e", "f" ] ]
                             |> Query.fromHtml
-                            |> Query.children [ Selector.tag "ul", Selector.class "membersList" ]
+                            |> Query.children [ Selector.tag "li" ]
+                            |> Query.index 0
+                            |> Query.children [ Selector.tag "li" ]
                 in
                 [ test "0番目のリストの0番目はaである" <|
                     \_ ->
                         memsListView
                             |> Query.index 0
-                            |> Query.findAll [ Selector.tag "li" ]
-                            |> Query.first
                             |> Query.has [ Selector.text "a" ]
                 , test "0番目のリストの1番目はbである" <|
                     \_ ->
                         memsListView
-                            |> Query.index 0
-                            |> Query.findAll [ Selector.tag "li" ]
                             |> Query.index 1
                             |> Query.has [ Selector.text "b" ]
                 ]
