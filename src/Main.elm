@@ -138,7 +138,12 @@ membersListView membersList =
 
 groupedMembersList : ShuffleListType -> Int -> List String -> List (List String)
 groupedMembersList shuffleListType num members =
-    []
+    case shuffleListType of
+        People ->
+            groupsOf num members
+
+        Team ->
+            []
 
 
 onChange : (String -> Msg) -> Attribute Msg
