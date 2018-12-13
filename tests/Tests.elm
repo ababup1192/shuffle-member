@@ -75,19 +75,22 @@ suite =
                         membersListView [ [ "a", "b" ], [ "c", "d" ], [ "e", "f" ] ]
                             |> Query.fromHtml
                             |> Query.children [ Selector.tag "li" ]
-                            |> Query.index 0
-                            |> Query.children [ Selector.tag "li" ]
+
+                    membersListViewTest numOfList numOfMember name =
+                        test (String.fromInt numOfList ++ "番目のリストの" ++ String.fromInt numOfMember ++ "番目は" ++ name ++ "である") <|
+                            \_ ->
+                                memsListView
+                                    |> Query.index numOfList
+                                    |> Query.children [ Selector.tag "li" ]
+                                    |> Query.index numOfMember
+                                    |> Query.has [ Selector.text name ]
                 in
-                [ test "0番目のリストの0番目はaである" <|
-                    \_ ->
-                        memsListView
-                            |> Query.index 0
-                            |> Query.has [ Selector.text "a" ]
-                , test "0番目のリストの1番目はbである" <|
-                    \_ ->
-                        memsListView
-                            |> Query.index 1
-                            |> Query.has [ Selector.text "b" ]
+                [ membersListViewTest 0 0 "a"
+                , membersListViewTest 0 1 "b"
+                , membersListViewTest 1 0 "c"
+                , membersListViewTest 1 1 "d"
+                , membersListViewTest 2 0 "e"
+                , membersListViewTest 2 1 "f"
                 ]
             ]
         ]
