@@ -3,6 +3,8 @@ module Main exposing (Model, Msg(..), selectNumView)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class, placeholder, value)
+import Html.Events as Event
+import Json.Decode as Decode exposing (Decoder)
 
 
 
@@ -68,7 +70,7 @@ view { maxSelectNum } =
 
 selectNumView : Int -> Html Msg
 selectNumView maxSelectNum =
-    select []
+    select [ onChange ChangeNum ]
         (List.range 2 maxSelectNum
             |> List.map
                 (\n ->
@@ -79,6 +81,11 @@ selectNumView maxSelectNum =
                     option [ value nText ] [ text nText ]
                 )
         )
+
+
+onChange : (String -> Msg) -> Attribute Msg
+onChange handler =
+    Event.on "change" (Decode.map handler Event.targetValue)
 
 
 subscriptions : Model -> Sub Msg
