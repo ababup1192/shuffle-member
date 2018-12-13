@@ -3,6 +3,7 @@ module Tests exposing (suite)
 import Expect exposing (Expectation)
 import Html exposing (option, select, text)
 import Html.Attributes exposing (value)
+import Json.Encode as Encode exposing (Value)
 import Main exposing (..)
 import Test exposing (..)
 import Test.Html.Event as Event
@@ -46,5 +47,20 @@ suite =
                 , optionTest 1 "3"
                 , optionTest 2 "4"
                 ]
+            , test "最大値が3のとき、3を選んだとき ChangeNum '3' の Msgが発行される" <|
+                \_ ->
+                    let
+                        simulatedEventObject : Value
+                        simulatedEventObject =
+                            Encode.object
+                                [ ( "target"
+                                  , Encode.object [ ( "value", Encode.string "3" ) ]
+                                  )
+                                ]
+                    in
+                    selectNumView 3
+                        |> Query.fromHtml
+                        |> Event.simulate (Event.custom "change" simulatedEventObject)
+                        |> Event.expect (ChangeNum "3")
             ]
         ]

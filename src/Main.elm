@@ -23,7 +23,7 @@ init _ =
 
 
 type Msg
-    = NoOp
+    = ChangeNum String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
