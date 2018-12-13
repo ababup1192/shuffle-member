@@ -1,4 +1,11 @@
-module Main exposing (Model, Msg(..), selectNumView, selectShuffleListTypeView)
+module Main exposing
+    ( Model
+    , Msg(..)
+    , ShuffleListType(..)
+    , membersListView
+    , selectNumView
+    , selectShuffleListTypeView
+    )
 
 import Browser
 import Html exposing (..)
@@ -12,12 +19,22 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 type alias Model =
-    { maxSelectNum : Int, selectedNum : Int, shuffleListType : ShuffleListType, memberList : List String }
+    { maxSelectNum : Int
+    , selectedNum : Int
+    , shuffleListType : ShuffleListType
+    , memberList : List String
+    }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { maxSelectNum = 2, selectedNum = 2, shuffleListType = People, memberList = [] }, Cmd.none )
+    ( { maxSelectNum = 2
+      , selectedNum = 2
+      , shuffleListType = People
+      , memberList = []
+      }
+    , Cmd.none
+    )
 
 
 type ShuffleListType
@@ -48,7 +65,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { maxSelectNum, shuffleListType, selectedNum } =
+view { maxSelectNum, shuffleListType, selectedNum, memberList } =
     section []
         [ article []
             [ selectNumView maxSelectNum selectedNum
@@ -96,6 +113,20 @@ selectShuffleListTypeView shuffleListType =
         [ option [ value "people", selected <| shuffleListType == People ] [ text "人" ]
         , option [ value "team", selected <| shuffleListType == Team ] [ text "チーム" ]
         ]
+
+
+membersListView : List (List String) -> Html Msg
+membersListView membersList =
+    ul [ class "membersList" ] <|
+        List.repeat 10 <|
+            li []
+                [ ul []
+                    [ li []
+                        [ text "あああ"
+                        , button [ class "destroy" ] []
+                        ]
+                    ]
+                ]
 
 
 onChange : (String -> Msg) -> Attribute Msg
