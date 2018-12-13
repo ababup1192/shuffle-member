@@ -23,16 +23,28 @@ suite =
                             [ Selector.attribute <| value "2"
                             , Selector.text "2"
                             ]
-            , test "最大数が4のとき、選べる項目は 2, 3, 4 である" <|
-                \_ ->
-                    selectNumView 4
-                        |> Query.fromHtml
-                        |> Query.contains
-                            [ select []
-                                [ option [ value "2" ] [ text "2" ]
-                                , option [ value "3" ] [ text "3" ]
-                                , option [ value "4" ] [ text "4" ]
-                                ]
-                            ]
+            , describe "最大数が4のとき" <|
+                let
+                    optionList =
+                        selectNumView 4
+                            |> Query.fromHtml
+                            |> Query.findAll [ Selector.tag "option" ]
+
+                    optionTest idx numText =
+                        test
+                            ("選べる項目の " ++ String.fromInt idx ++ "番目は " ++ numText ++ "である")
+                        <|
+                            \_ ->
+                                optionList
+                                    |> Query.index idx
+                                    |> Query.has
+                                        [ Selector.attribute <| value numText
+                                        , Selector.text numText
+                                        ]
+                in
+                [ optionTest 0 "2"
+                , optionTest 1 "3"
+                , optionTest 2 "4"
+                ]
             ]
         ]
