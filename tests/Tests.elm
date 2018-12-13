@@ -61,6 +61,12 @@ suite =
                         |> Query.fromHtml
                         |> Event.simulate (Event.custom "change" <| simulatedStringEventObject "people")
                         |> Event.expect (ChangeShuffleType "people")
+            , test "teamを選択したら ChangeShuffleType 'team' の Msgが発行される " <|
+                \_ ->
+                    selectShuffleListTypeView
+                        |> Query.fromHtml
+                        |> Event.simulate (Event.custom "change" <| simulatedStringEventObject "team")
+                        |> Event.expect (ChangeShuffleType "team")
             ]
         ]
 

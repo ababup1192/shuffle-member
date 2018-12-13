@@ -83,7 +83,7 @@ selectNumView maxSelectNum =
 
 selectShuffleListTypeView : Html Msg
 selectShuffleListTypeView =
-    select []
+    select [ onChange ChangeShuffleType ]
         [ option [ value "people" ] [ text "人" ]
         , option [ value "team" ] [ text "チーム" ]
         ]
