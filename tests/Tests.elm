@@ -18,10 +18,10 @@ suite =
                 \_ ->
                     selectNumView 2
                         |> Query.fromHtml
-                        |> Query.contains
-                            [ select []
-                                [ option [ value "2" ] [ text "2" ]
-                                ]
+                        |> Query.find [ Selector.tag "option" ]
+                        |> Query.has
+                            [ Selector.attribute <| value "2"
+                            , Selector.text "2"
                             ]
             , test "最大数が4のとき、選べる項目は 2, 3, 4 である" <|
                 \_ ->
