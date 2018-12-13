@@ -2,8 +2,8 @@ module Main exposing (Model, Msg(..), selectNumView, selectShuffleListTypeView)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, placeholder, value)
-import Html.Events as Event
+import Html.Attributes exposing (class, placeholder, selected, value)
+import Html.Events as Event exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 
 
@@ -12,12 +12,17 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 type alias Model =
-    { maxSelectNum : Int }
+    { maxSelectNum : Int, selectedNum : Int, shuffleListType : ShuffleListType, memberList : List String }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { maxSelectNum = 2 }, Cmd.none )
+    ( { maxSelectNum = 2, selectedNum = 2, shuffleListType = People, memberList = [] }, Cmd.none )
+
+
+type ShuffleListType
+    = People
+    | Team
 
 
 
@@ -27,6 +32,10 @@ init _ =
 type Msg
     = ChangeNum String
     | ChangeShuffleType String
+    | ToggleShuffle
+    | UpdateNewMember String
+    | AddMember
+    | ClearMember
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -39,17 +48,17 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { maxSelectNum } =
+view { maxSelectNum, shuffleListType, selectedNum } =
     section []
         [ article []
-            [ selectNumView maxSelectNum
-            , selectShuffleListTypeView
-            , button [] [ text "シャッフル♪" ]
+            [ selectNumView maxSelectNum selectedNum
+            , selectShuffleListTypeView shuffleListType
+            , button [ onClick ToggleShuffle ] [ text "シャッフル♪" ]
             ]
         , article []
-            [ input [ placeholder "新規メンバー" ] []
-            , button [] [ text "追加" ]
-            , button [] [ text "クリア" ]
+            [ input [ placeholder "新規メンバー", onInput UpdateNewMember ] []
+            , button [ onClick AddMember ] [ text "追加" ]
+            , button [ onClick ClearMember ] [ text "クリア" ]
             ]
         , article []
             [ ul [] <|
@@ -66,8 +75,8 @@ view { maxSelectNum } =
         ]
 
 
-selectNumView : Int -> Html Msg
-selectNumView maxSelectNum =
+selectNumView : Int -> Int -> Html Msg
+selectNumView maxSelectNum selectedNum =
     select [ onChange ChangeNum ]
         (List.range 2 maxSelectNum
             |> List.map
@@ -76,16 +85,16 @@ selectNumView maxSelectNum =
                         nText =
                             String.fromInt n
                     in
-                    option [ value nText ] [ text nText ]
+                    option [ value nText, selected <| selectedNum == n ] [ text nText ]
                 )
         )
 
 
-selectShuffleListTypeView : Html Msg
-selectShuffleListTypeView =
+selectShuffleListTypeView : ShuffleListType -> Html Msg
+selectShuffleListTypeView shuffleListType =
     select [ onChange ChangeShuffleType ]
-        [ option [ value "people" ] [ text "人" ]
-        , option [ value "team" ] [ text "チーム" ]
+        [ option [ value "people", selected <| shuffleListType == People ] [ text "人" ]
+        , option [ value "team", selected <| shuffleListType == Team ] [ text "チーム" ]
         ]
 
 
