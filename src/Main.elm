@@ -95,6 +95,7 @@ update msg ({ memberList, name, shuffleMode } as model) =
                 ( { model
                     | shuffleListType = Team
                     , selectedNum = 2
+                    , maxSelectNum = maxPeopleNum memberList
                   }
                 , Cmd.none
                 )
