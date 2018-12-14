@@ -253,28 +253,20 @@ groupedMembersList shuffleListType num members =
     case shuffleListType of
         People ->
             let
-                groupedMembers =
-                    groupsOf num members
-            in
-            groupedMembers
-                ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
-                |> List.filter (\l -> not <| List.isEmpty l)
-
-        Team ->
-            let
                 dividedNum =
-                    List.length members // num
+                    (List.length members + num - 1) // num
 
                 groupedMembers =
                     groupsOf dividedNum members
             in
-            List.reverse <|
-                case List.reverse groupedMembers of
-                    x :: xs ->
-                        (x ++ List.drop (List.length <| List.concat groupedMembers) members) :: xs
+            groupedMembers
 
-                    [] ->
-                        []
+        Team ->
+            let
+                groupedMembers =
+                    groupsOf num members
+            in
+            groupedMembers
 
 
 onChange : (String -> Msg) -> Attribute Msg
@@ -312,26 +304,18 @@ main =
 
 groupsOf : Int -> List a -> List (List a)
 groupsOf size xs =
-    groupsOfWithStep size size xs
-
-
-groupsOfWithStep : Int -> Int -> List a -> List (List a)
-groupsOfWithStep size step xs =
     let
+        num =
+            (List.length xs - 1) // size + 1
+
         thisGroup =
-            List.take size xs
+            List.take num xs
 
         xs_ =
-            List.drop step xs
-
-        okayArgs =
-            size > 0 && step > 0
-
-        okayLength =
-            size == List.length thisGroup
+            List.drop num xs
     in
-    if okayArgs && okayLength then
-        thisGroup :: groupsOfWithStep size step xs_
+    if List.length xs_ /= 0 then
+        thisGroup :: groupsOf (size - 1) xs_
 
     else
-        []
+        [ thisGroup ]

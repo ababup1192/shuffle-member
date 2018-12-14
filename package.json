@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "elm-format": "^0.8.1"
+  },
   "scripts": {
     "build": "webpack",
     "start": "webpack-dev-server",
