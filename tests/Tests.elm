@@ -131,21 +131,21 @@ suite =
                 \_ ->
                     let
                         expected =
-                            [ [ "a", "b", "c" ], [ "d", "e", "f", "g" ] ]
+                            [ [ "a", "b", "c", "d" ], [ "e", "f", "g" ] ]
 
                         actual =
                             [ "a", "b", "c", "d", "e", "f", "g" ]
                                 |> groupedMembersList Team 2
                     in
                     Expect.equal expected actual
-            , test "11人のメンバーを3チームで分けた" <|
+            , test "8人のメンバーの3チームで分けた" <|
                 \_ ->
                     let
                         expected =
-                            [ [ "a", "b", "c" ], [ "d", "e", "f" ], [ "g", "h", "i", "j", "k" ] ]
+                            [ [ "a", "b", "c" ], [ "d", "e", "f" ], [ "g", "h" ] ]
 
                         actual =
-                            [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k" ]
+                            [ "a", "b", "c", "d", "e", "f", "g", "h" ]
                                 |> groupedMembersList Team 3
                     in
                     Expect.equal expected actual

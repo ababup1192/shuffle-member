@@ -13,6 +13,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, placeholder, selected, value)
 import Html.Events as Event exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
+import List.Extra as List
 import Random as Random exposing (Generator)
 import Random.List exposing (shuffle)
 import Time
@@ -253,7 +254,7 @@ groupedMembersList shuffleListType num members =
         People ->
             let
                 groupedMembers =
-                    groupsOf num members
+                    List.groupsOf num members
             in
             groupedMembers
                 ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
@@ -261,19 +262,26 @@ groupedMembersList shuffleListType num members =
 
         Team ->
             let
-                dividedNum =
-                    List.length members // num
+                numOfMember =
+                    List.length members
 
-                groupedMembers =
-                    groupsOf dividedNum members
+                teamNumsBase =
+                    List.repeat num (numOfMember // num)
+
+                remainder =
+                    modBy num numOfMember
+
+                teamNums =
+                    let
+                        adder =
+                            List.map2 (+) teamNumsBase (List.repeat remainder 1)
+
+                        tail =
+                            List.drop remainder teamNumsBase
+                    in
+                    adder ++ tail
             in
-            List.reverse <|
-                case List.reverse groupedMembers of
-                    x :: xs ->
-                        (x ++ List.drop (List.length <| List.concat groupedMembers) members) :: xs
-
-                    [] ->
-                        []
+            List.groupsOfVarying teamNums members
 
 
 onChange : (String -> Msg) -> Attribute Msg
@@ -303,34 +311,3 @@ main =
         , subscriptions = subscriptions
         , view = view
         }
-
-
-
---- List Util ---
-
-
-groupsOf : Int -> List a -> List (List a)
-groupsOf size xs =
-    groupsOfWithStep size size xs
-
-
-groupsOfWithStep : Int -> Int -> List a -> List (List a)
-groupsOfWithStep size step xs =
-    let
-        thisGroup =
-            List.take size xs
-
-        xs_ =
-            List.drop step xs
-
-        okayArgs =
-            size > 0 && step > 0
-
-        okayLength =
-            size == List.length thisGroup
-    in
-    if okayArgs && okayLength then
-        thisGroup :: groupsOfWithStep size step xs_
-
-    else
-        []
