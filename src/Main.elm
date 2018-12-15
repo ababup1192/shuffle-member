@@ -263,12 +263,11 @@ groupedMembersList shuffleListType num members =
                 ungroupedMember =
                     List.drop ungroupedMembersLength members
             in
-            case ungroupedMember of
-                [] ->
-                    groupedMembers
+            if List.isEmpty ungroupedMember then
+                groupedMembers
 
-                _ ->
-                    groupedMembers ++ [ ungroupedMember ]
+            else
+                groupedMembers ++ [ ungroupedMember ]
 
         Team ->
             let
