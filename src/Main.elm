@@ -255,10 +255,19 @@ groupedMembersList shuffleListType num members =
             let
                 groupedMembers =
                     List.groupsOf num members
+
+                ungroupedMembersLength =
+                    List.length <| List.concat groupedMembers
+
+                ungroupedMember =
+                    List.drop ungroupedMembersLength members
             in
-            groupedMembers
-                ++ [ List.drop (List.length <| List.concat groupedMembers) members ]
-                |> List.filter (\l -> not <| List.isEmpty l)
+            case ungroupedMember of
+                [] ->
+                    groupedMembers
+
+                _ ->
+                    groupedMembers ++ [ ungroupedMember ]
 
         Team ->
             let
