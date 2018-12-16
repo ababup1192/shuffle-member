@@ -1,4 +1,4 @@
-module Main exposing
+port module Main exposing
     ( Model
     , Msg(..)
     , ShuffleListType(..)
@@ -20,6 +20,21 @@ import Time
 
 
 
+---- ports ----
+
+
+type alias StorageModel =
+    { maxSelectNum : Int
+    , selectedNum : Int
+    , memberList : List String
+    , name : String
+    }
+
+
+port setStorage : StorageModel -> Cmd msg
+
+
+
 ---- MODEL ----
 
 
@@ -33,13 +48,17 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { maxSelectNum = 2
-      , selectedNum = 2
+init : Maybe StorageModel -> ( Model, Cmd Msg )
+init maybeStorageModel =
+    let
+        { maxSelectNum, selectedNum, memberList, name } =
+            Maybe.withDefault (StorageModel 2 2 [] "") maybeStorageModel
+    in
+    ( { maxSelectNum = maxSelectNum
+      , selectedNum = selectedNum
       , shuffleListType = People
-      , memberList = []
-      , name = ""
+      , memberList = memberList
+      , name = name
       , shuffleMode = Stop
       }
     , Cmd.none
@@ -69,17 +88,19 @@ type Msg
     | ClearMember
     | LetsShuffle Time.Posix
     | ListShuffle (List String)
+    | DeleteMember Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ memberList, name, shuffleMode } as model) =
+update msg ({ maxSelectNum, selectedNum, memberList, name, shuffleMode } as model) =
     case msg of
         ChangeNum numText ->
-            ( { model
-                | selectedNum =
+            let
+                snum =
                     Maybe.withDefault 2 <| String.toInt numText
-              }
-            , Cmd.none
+            in
+            ( { model | selectedNum = snum }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum snum memberList name ]
             )
 
         ChangeShuffleType typeText ->
@@ -114,7 +135,9 @@ update msg ({ memberList, name, shuffleMode } as model) =
             ( { model | shuffleMode = nextMode }, Cmd.none )
 
         UpdateNewMember n ->
-            ( { model | name = n }, Cmd.none )
+            ( { model | name = n }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum memberList n ]
+            )
 
         AddMember keyCode ->
             let
@@ -130,11 +153,24 @@ update msg ({ memberList, name, shuffleMode } as model) =
                     , name = ""
                     , maxSelectNum = maxPeopleNum newMemberList
                   }
-                , Cmd.none
+                , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum newMemberList "" ]
                 )
 
             else
                 ( model, Cmd.none )
+
+        DeleteMember idx ->
+            let
+                list =
+                    List.reverse memberList
+
+                deletedMemberList =
+                    (List.take idx list ++ List.drop (idx + 1) list)
+                        |> List.reverse
+            in
+            ( { model | memberList = deletedMemberList }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum deletedMemberList name ]
+            )
 
         ClearMember ->
             ( { model
@@ -142,14 +178,16 @@ update msg ({ memberList, name, shuffleMode } as model) =
                 , maxSelectNum = 2
                 , selectedNum = 2
               }
-            , Cmd.none
+            , Cmd.batch [ setStorage <| StorageModel 2 2 [] name ]
             )
 
         LetsShuffle _ ->
             ( model, Cmd.batch [ Random.generate ListShuffle <| shuffle memberList ] )
 
         ListShuffle shuffledMemberList ->
-            ( { model | memberList = shuffledMemberList }, Cmd.none )
+            ( { model | memberList = shuffledMemberList }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum shuffledMemberList name ]
+            )
 
 
 maxPeopleNum : List String -> Int
@@ -201,7 +239,7 @@ view { maxSelectNum, shuffleListType, selectedNum, memberList, name, shuffleMode
             [ memberList
                 |> List.reverse
                 |> groupedMembersList shuffleListType selectedNum
-                |> membersListView
+                |> membersListView shuffleListType selectedNum
             ]
         ]
 
@@ -229,24 +267,46 @@ selectShuffleListTypeView shuffleListType =
         ]
 
 
-membersListView : List (List String) -> Html Msg
-membersListView membersList =
+membersListView : ShuffleListType -> Int -> List (List String) -> Html Msg
+membersListView shuffleListType selectedNum membersList =
+    let
+        perNum =
+            groupPerNum shuffleListType selectedNum (List.concat membersList)
+    in
     ul [ class "membersList" ] <|
-        List.map
-            (\members ->
+        List.indexedMap
+            (\lindex members ->
                 li []
                     [ ul [] <|
-                        List.map
-                            (\member ->
+                        List.indexedMap
+                            (\mindex member ->
                                 li []
                                     [ text member
-                                    , button [ class "destroy" ] []
+                                    , button
+                                        [ onClick <| DeleteMember (lindex * perNum + mindex)
+                                        , class "destroy"
+                                        ]
+                                        []
                                     ]
                             )
                             members
                     ]
             )
             membersList
+
+
+groupPerNum : ShuffleListType -> Int -> List String -> Int
+groupPerNum shuffleListType num members =
+    let
+        numOfMember =
+            List.length members
+    in
+    case shuffleListType of
+        People ->
+            num
+
+        Team ->
+            numOfMember // num
 
 
 groupedMembersList : ShuffleListType -> Int -> List String -> List (List String)
