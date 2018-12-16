@@ -88,6 +88,7 @@ type Msg
     | ClearMember
     | LetsShuffle Time.Posix
     | ListShuffle (List String)
+    | DeleteMember Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,6 +159,19 @@ update msg ({ maxSelectNum, selectedNum, memberList, name, shuffleMode } as mode
             else
                 ( model, Cmd.none )
 
+        DeleteMember idx ->
+            let
+                list =
+                    List.reverse memberList
+
+                deletedMemberList =
+                    (List.take idx list ++ List.drop (idx + 1) list)
+                        |> List.reverse
+            in
+            ( { model | memberList = deletedMemberList }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum deletedMemberList name ]
+            )
+
         ClearMember ->
             ( { model
                 | memberList = []
@@ -225,7 +239,7 @@ view { maxSelectNum, shuffleListType, selectedNum, memberList, name, shuffleMode
             [ memberList
                 |> List.reverse
                 |> groupedMembersList shuffleListType selectedNum
-                |> membersListView
+                |> membersListView shuffleListType selectedNum
             ]
         ]
 
@@ -253,24 +267,46 @@ selectShuffleListTypeView shuffleListType =
         ]
 
 
-membersListView : List (List String) -> Html Msg
-membersListView membersList =
+membersListView : ShuffleListType -> Int -> List (List String) -> Html Msg
+membersListView shuffleListType selectedNum membersList =
+    let
+        perNum =
+            groupPerNum shuffleListType selectedNum (List.concat membersList)
+    in
     ul [ class "membersList" ] <|
-        List.map
-            (\members ->
+        List.indexedMap
+            (\lindex members ->
                 li []
                     [ ul [] <|
-                        List.map
-                            (\member ->
+                        List.indexedMap
+                            (\mindex member ->
                                 li []
                                     [ text member
-                                    , button [ class "destroy" ] []
+                                    , button
+                                        [ onClick <| DeleteMember (lindex * perNum + mindex)
+                                        , class "destroy"
+                                        ]
+                                        []
                                     ]
                             )
                             members
                     ]
             )
             membersList
+
+
+groupPerNum : ShuffleListType -> Int -> List String -> Int
+groupPerNum shuffleListType num members =
+    let
+        numOfMember =
+            List.length members
+    in
+    case shuffleListType of
+        People ->
+            num
+
+        Team ->
+            numOfMember // num
 
 
 groupedMembersList : ShuffleListType -> Int -> List String -> List (List String)
