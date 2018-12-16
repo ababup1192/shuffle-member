@@ -1,4 +1,4 @@
-module Main exposing
+port module Main exposing
     ( Model
     , Msg(..)
     , ShuffleListType(..)
@@ -20,6 +20,21 @@ import Time
 
 
 
+---- ports ----
+
+
+type alias StorageModel =
+    { maxSelectNum : Int
+    , selectedNum : Int
+    , memberList : List String
+    , name : String
+    }
+
+
+port setStorage : StorageModel -> Cmd msg
+
+
+
 ---- MODEL ----
 
 
@@ -33,13 +48,17 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { maxSelectNum = 2
-      , selectedNum = 2
+init : Maybe StorageModel -> ( Model, Cmd Msg )
+init maybeStorageModel =
+    let
+        { maxSelectNum, selectedNum, memberList, name } =
+            Maybe.withDefault (StorageModel 2 2 [] "") maybeStorageModel
+    in
+    ( { maxSelectNum = maxSelectNum
+      , selectedNum = selectedNum
       , shuffleListType = People
-      , memberList = []
-      , name = ""
+      , memberList = memberList
+      , name = name
       , shuffleMode = Stop
       }
     , Cmd.none
@@ -72,14 +91,15 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ memberList, name, shuffleMode } as model) =
+update msg ({ maxSelectNum, selectedNum, memberList, name, shuffleMode } as model) =
     case msg of
         ChangeNum numText ->
-            ( { model
-                | selectedNum =
+            let
+                snum =
                     Maybe.withDefault 2 <| String.toInt numText
-              }
-            , Cmd.none
+            in
+            ( { model | selectedNum = snum }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum snum memberList name ]
             )
 
         ChangeShuffleType typeText ->
@@ -114,7 +134,9 @@ update msg ({ memberList, name, shuffleMode } as model) =
             ( { model | shuffleMode = nextMode }, Cmd.none )
 
         UpdateNewMember n ->
-            ( { model | name = n }, Cmd.none )
+            ( { model | name = n }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum memberList n ]
+            )
 
         AddMember keyCode ->
             let
@@ -130,7 +152,7 @@ update msg ({ memberList, name, shuffleMode } as model) =
                     , name = ""
                     , maxSelectNum = maxPeopleNum newMemberList
                   }
-                , Cmd.none
+                , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum newMemberList "" ]
                 )
 
             else
@@ -142,14 +164,16 @@ update msg ({ memberList, name, shuffleMode } as model) =
                 , maxSelectNum = 2
                 , selectedNum = 2
               }
-            , Cmd.none
+            , Cmd.batch [ setStorage <| StorageModel 2 2 [] name ]
             )
 
         LetsShuffle _ ->
             ( model, Cmd.batch [ Random.generate ListShuffle <| shuffle memberList ] )
 
         ListShuffle shuffledMemberList ->
-            ( { model | memberList = shuffledMemberList }, Cmd.none )
+            ( { model | memberList = shuffledMemberList }
+            , Cmd.batch [ setStorage <| StorageModel maxSelectNum selectedNum shuffledMemberList name ]
+            )
 
 
 maxPeopleNum : List String -> Int
